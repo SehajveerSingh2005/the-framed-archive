@@ -13,13 +13,13 @@ const spaceMono = Space_Mono({
   weight: ['400', '700'],
   subsets: ['latin'],
   display: 'swap',
-});
+})
 
 const archivo = Archivo_Black({ 
   weight: '400',
   subsets: ['latin'],
   display: 'swap',
-});
+})
 
 export default function AdminProducts() {
   const { user } = useAuth()
@@ -58,7 +58,7 @@ export default function AdminProducts() {
     e.preventDefault()
     try {
       await addDoc(collection(db, 'products'), product)
-      alert('Product added successfully!')
+      toast.success('Product added successfully!')
       setProduct({
         name: '',
         slug: '',
@@ -76,40 +76,73 @@ export default function AdminProducts() {
       setFolderName('')
     } catch (error) {
       console.error('Error adding product:', error)
-      alert('Error adding product')
+      toast.error('Error adding product')
     }
   }
 
   const generateSlug = (name: string) => {
     return name.trim()
       .toLowerCase()
-      .replace(/[^\w\s-]/g, '')  // Remove special characters
-      .replace(/\s+/g, '-')      // Replace spaces with hyphens
-      .replace(/-+/g, '-')       // Remove consecutive hyphens
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
   }
 
-                    // Add debounced folder name update
-                    const debouncedUpdateFolder = useCallback((newFolder: string) => {
-                      const timeoutId = setTimeout(() => {
-                        setFolderName(newFolder)
-                        setProduct(prev => ({
-                          ...prev,
-                          images: generateImagePaths(newFolder)
-                        }))
-                      }, 300) // Wait 300ms before updating
-                    
-                      return () => clearTimeout(timeoutId)
-                    }, [])
+  const debouncedUpdateFolder = useCallback((newFolder: string) => {
+    const timeoutId = setTimeout(() => {
+      setFolderName(newFolder)
+      setProduct(prev => ({
+        ...prev,
+        images: generateImagePaths(newFolder)
+      }))
+    }, 300)
   
+    return () => clearTimeout(timeoutId)
+  }, [])
+
   useEffect(() => {
-    const isAdmin = sessionStorage.getItem('isAdmin')
-    if (!isAdmin) {
+    const checkAdminStatus = async () => {
+      if (!user?.email) {
+        router.push('/')
+        return
+      }
+
+      try {
+        await user.getIdToken(true)
+        
+        const response = await fetch('/api/admin/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: user.email })
+        })
+
+        const data = await response.json()
+        
+        if (!data.isAdmin) {
+          router.push('/')
+          toast.error('Unauthorized access')
+          return
+        }
+        
+        setIsAdmin(true)
+      } catch (error) {
+        console.error('Admin verification error:', error)
+        router.push('/')
+        toast.error('Error verifying admin status')
+      }
+    }
+
+    checkAdminStatus()
+  }, [user, router])
+
+  useEffect(() => {
+    const isAdminSession = sessionStorage.getItem('isAdmin')
+    if (!isAdminSession) {
       router.push('/admin/login')
     }
   }, [router])
 
-  if (!user) return null
-
+  if (!user || !isAdmin) return null
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -296,41 +329,4 @@ export default function AdminProducts() {
       </div>
     </main>
   )
-
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (!user?.email) {
-        router.push('/')
-        return
-      }
-
-      try {
-        await user.getIdToken(true)
-        
-        const response = await fetch('/api/admin/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: user.email })
-        })
-
-        const data = await response.json()
-        
-        if (!data.isAdmin) {
-          router.push('/')
-          toast.error('Unauthorized access')
-          return
-        }
-        
-        setIsAdmin(true)
-      } catch (error) {
-        console.error('Admin verification error:', error)
-        router.push('/')
-        toast.error('Error verifying admin status')
-      }
-    }
-
-    checkAdminStatus()
-  }, [user, router])
-
-  if (!isAdmin) return null
 }
