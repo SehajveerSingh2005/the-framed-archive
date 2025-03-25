@@ -7,7 +7,11 @@ export type CartItem = {
   basePrice: number
   price: number
   quantity: number
-  image: string
+  image: {
+    large: string
+    medium: string
+    small: string
+  }
   size: string
   printType: string
   variant: string
@@ -19,9 +23,15 @@ export async function mergeCartOnLogin(userId: string, localCart: CartItem[]) {
     const userDoc = await getDoc(userRef)
 
     if (!userDoc.exists()) {
-      // If user document doesn't exist, create it with local cart
-      await setDoc(userRef, { cart: localCart })
-      return localCart
+      // Ensure local cart items have the correct image structure
+      const validatedCart = localCart.map(item => ({
+        ...item,
+        image: typeof item.image === 'string' 
+          ? { large: item.image, medium: item.image, small: item.image }
+          : item.image
+      }))
+      await setDoc(userRef, { cart: validatedCart })
+      return validatedCart
     }
 
     // Get existing cart from database

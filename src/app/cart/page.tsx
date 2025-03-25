@@ -33,7 +33,11 @@ type CartItem = {
   basePrice: number
   price: number
   quantity: number
-  image: string
+  image: {
+    large: string
+    medium: string
+    small: string
+  }
   size: string
   printType: string
   variant: string
@@ -241,14 +245,20 @@ export default function Cart() {
                       >
                         <div className="flex gap-6 sm:gap-12">
                           <div className="relative aspect-[4/5] w-40 sm:w-48 flex-shrink-0">
-                            <Image
-                              src={item.image}
-                              alt={item.name}
-                              fill
-                              className="object-cover"
-                              sizes="(max-width: 768px) 160px, 192px"
-                              priority={index < 2}
-                            />
+                            {item.image?.medium ? (
+                              <Image
+                                src={item.image.medium}
+                                alt={item.name}
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 768px) 160px, 192px"
+                                priority={index < 2}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-500">
+                                <span>No Image</span>
+                              </div>
+                            )}
                           </div>
 
                           <div className="flex-1">

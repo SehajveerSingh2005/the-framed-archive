@@ -48,11 +48,16 @@ type Product = {
   description: string
   details: string[]
   images: {
-    [key: string]: string
+    [key: string]: {
+      large: string
+      medium: string
+      small: string
+    }
   }
   themes: string[]
   reviews?: Review[]
   wishlistedBy?: string[]
+  slug: string
 }
 
 export default function ProductPage() {
@@ -280,8 +285,8 @@ export default function ProductPage() {
 
   return (
     <main className="min-h-screen bg-black">
-      <div className="px-8 mb-24">
-        <div className="max-w-screen-xl mx-auto pt-32">
+      <div className="px-8">
+        <div className="max-w-screen-xl mx-auto pt-32 pb-24">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -296,8 +301,8 @@ export default function ProductPage() {
             </Link>
           </motion.div>
 
-          <section className="pb-16">
-            <div className="max-w-screen-xl mx-auto grid md:grid-cols-2 gap-16">
+          <section>
+            <div className="grid md:grid-cols-2 gap-16">
               {/* Product Images */}
               <div className="relative">
                 {isMobile ? (
@@ -308,42 +313,40 @@ export default function ProductPage() {
                       loop={true}
                       className="h-full"
                     >
-                      {Object.values(product.images).map((image, index) => (
-                        <SwiperSlide key={index}>
+                      {Object.entries(product.images).map(([key, image], index) => (
+                        <SwiperSlide key={key}>
                           <div className="relative w-full h-full">
-                          <Image
-                            src={image}
-                            alt={`${product.name} - Image ${index + 1}`}
-                            fill
-                            className="object-cover"
-                            priority={index < 2}
-                            loading={index < 2 ? "eager" : "lazy"}
-                            sizes="100vw"
-                            quality={85}
-                            onLoad={(event) => {
-                              const img = event.target as HTMLImageElement
-                              img.classList.remove('opacity-0')
-                            }}
-                          />
-                          
+                            <Image
+                              src={image.large}
+                              alt={`${product.name} - Image ${index + 1}`}
+                              fill
+                              className="object-cover opacity-0 transition-opacity duration-300"
+                              priority={index < 2}
+                              loading={index < 2 ? "eager" : "lazy"}
+                              sizes="100vw"
+                              quality={85}
+                              onLoad={(event) => {
+                                const img = event.target as HTMLImageElement
+                                img.classList.remove('opacity-0')
+                              }}
+                            />
                           </div>
                         </SwiperSlide>
                       ))}
                     </Swiper>
                   </div>
                 ) : (
-                  // In the desktop view section
                   <div className="space-y-8">
-                    {Object.values(product.images).map((image, index) => (
+                    {Object.entries(product.images).map(([key, image], index) => (
                       <motion.div
-                        key={index}
+                        key={key}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: index * 0.2 }}
                         className="relative aspect-[4/5] bg-[#111]"
                       >
                         <Image
-                          src={image}
+                          src={image.large}
                           alt={`${product.name} - Image ${index + 1}`}
                           fill
                           className="object-cover opacity-0"
@@ -368,23 +371,37 @@ export default function ProductPage() {
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
                 <div>
-                <div className="flex items-center justify-between">
-                  <h1 className={`${archivo.className} text-4xl text-white`}>{product.name}</h1>
-                  <button
-                    onClick={handleWishlist}
-                    className="text-white/60 hover:text-white transition-colors p-2"
-                    aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-                  >
-                    <Heart className="w-6 h-6" fill={isWishlisted ? 'currentColor' : 'none'} />
-                  </button>
-                </div>
+                  <div className="flex items-center justify-between">
+                    <h1 className={`${archivo.className} text-4xl text-white`}>{product.name}</h1>
+                    <button
+                      onClick={handleWishlist}
+                      className="text-white/60 hover:text-white transition-colors p-2"
+                      aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                    >
+                      <Heart className="w-6 h-6" fill={isWishlisted ? 'currentColor' : 'none'} />
+                    </button>
+                  </div>
                   <p className={`${spaceMono.className} text-sm mt-2 text-white opacity-80`}>
                     {product.themes.join(', ')}
                   </p>
                 </div>
 
                 <ProductOptions 
-                  product={productWithPrice}
+                  product={{
+                    ...product,
+                    price: getPrice(),
+                    printType: selectedPrintType,
+                    variant: selectedVariant,
+                    size: selectedSize,
+                    images: Object.entries(product.images).reduce((acc, [key, value]) => {
+                      acc[key] = {
+                        large: value.large,
+                        medium: value.medium,
+                        small: value.small
+                      };
+                      return acc;
+                    }, {} as { [key: string]: { large: string; medium: string; small: string } })
+                  }}
                   selectedPrintType={selectedPrintType}
                   setSelectedPrintType={setSelectedPrintType}
                   selectedVariant={selectedVariant}
@@ -422,88 +439,90 @@ export default function ProductPage() {
           </section>
         </div>
       </div>
-      <section className="max-w-screen-xl mx-auto px-8 text-white">
-    <h2 className={`${archivo.className} text-3xl mb-8`}>REVIEWS</h2>
-    
-    {/* Review Form */}
-    {user && (
-      <form onSubmit={handleReviewSubmit} className="mb-12 space-y-4">
-        <div className="flex gap-2">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              key={star}
-              type="button"
-              onClick={() => setNewReview(prev => ({ ...prev, rating: star }))}
-              className={star <= newReview.rating ? 'text-yellow-400' : 'text-gray-400'}
-            >
-              <Star className="w-6 h-6" fill={star <= newReview.rating ? 'currentColor' : 'none'} />
-            </button>
-          ))}
-        </div>
-        
-        <textarea
-          value={newReview.comment}
-          onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
-          placeholder="Write your review..."
-          className="w-full p-4 bg-[#111] border border-white/10 focus:border-white outline-none text-white"
-          rows={4}
-          required
-        />
-        
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="px-8 py-3 bg-white text-black hover:bg-black hover:text-white border border-white transition-colors disabled:opacity-50"
-        >
-          {isSubmitting ? 'Submitting...' : 'Submit Review'}
-        </button>
-      </form>
-    )}
-    
-    {/* Reviews List */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      {reviews.length > 0 ? (
-        reviews.map((review) => (
-          <div key={review.id} className="border-b border-white/10 pb-8">
-            <div className="flex flex-col gap-2 mb-4">
-              <div className="flex items-center gap-4">
-                <div className="flex gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="w-4 h-4"
-                      fill={i < review.rating ? '#FBBF24' : 'none'}
-                      stroke={i < review.rating ? '#FBBF24' : 'currentColor'}
-                    />
-                  ))}
-                </div>
-                <p className={`${spaceMono.className} text-sm`}>{review.userName}</p>
-                <p className="text-sm text-white/60">
-                  {new Date(review.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <p className="text-white/80 flex-grow">{review.comment}</p>
-              {user && user.uid === review.userId && (
-                <button
-                  onClick={() => handleDeleteReview(review.id, review.userId)}
-                  className="text-white/60 hover:text-red-500 transition-colors p-1"
-                  aria-label="Delete review"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          </div>
-        ))
-      ) : (
-        <p className="text-white/60">No reviews yet. Be the first to review this product!</p>
-      )}
-    </div>
-  </section>
 
-  <Footer theme='dark' background='dark' />
-  </main>
+      {/* Reviews Section */}
+      <section className="max-w-screen-xl mx-auto px-8 pb-24">
+        <h2 className={`${archivo.className} text-3xl mb-8 text-white`}>REVIEWS</h2>
+        
+        {/* Review Form */}
+        {user && (
+          <form onSubmit={handleReviewSubmit} className="mb-12 space-y-4">
+            <div className="flex gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setNewReview(prev => ({ ...prev, rating: star }))}
+                  className={star <= newReview.rating ? 'text-yellow-400' : 'text-gray-400'}
+                >
+                  <Star className="w-6 h-6" fill={star <= newReview.rating ? 'currentColor' : 'none'} />
+                </button>
+              ))}
+            </div>
+            
+            <textarea
+              value={newReview.comment}
+              onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
+              placeholder="Write your review..."
+              className="w-full p-4 bg-[#111] border border-white/10 focus:border-white outline-none text-white"
+              rows={4}
+              required
+            />
+            
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-8 py-3 bg-white text-black hover:bg-black hover:text-white border border-white transition-colors disabled:opacity-50"
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Review'}
+            </button>
+          </form>
+        )}
+        
+        {/* Reviews List */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {reviews.length > 0 ? (
+            reviews.map((review) => (
+              <div key={review.id} className="border-b border-white/10 pb-8">
+                <div className="flex flex-col gap-2 mb-4">
+                  <div className="flex items-center gap-4">
+                    <div className="flex gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className="w-4 h-4"
+                          fill={i < review.rating ? '#FBBF24' : 'none'}
+                          stroke={i < review.rating ? '#FBBF24' : 'currentColor'}
+                        />
+                      ))}
+                    </div>
+                    <p className={`${spaceMono.className} text-sm`}>{review.userName}</p>
+                    <p className="text-sm text-white/60">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <p className="text-white/80 flex-grow">{review.comment}</p>
+                  {user && user.uid === review.userId && (
+                    <button
+                      onClick={() => handleDeleteReview(review.id, review.userId)}
+                      className="text-white/60 hover:text-red-500 transition-colors p-1"
+                      aria-label="Delete review"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-white/60">No reviews yet. Be the first to review this product!</p>
+          )}
+        </div>
+      </section>
+
+      <Footer theme="dark" background="dark" />
+    </main>
   )
 }

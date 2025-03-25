@@ -25,10 +25,16 @@ const nextConfig = {
     },
   ],
   images: {
-    domains: [
-      // your image domains here
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
+        port: '',
+        pathname: '/v0/b/**',
+      },
     ],
     minimumCacheTTL: 60,
+    formats: ['image/webp']
   },
   webpack: (config: any) => {
     config.resolve.fallback = {

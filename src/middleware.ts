@@ -9,7 +9,24 @@ export function middleware(request: NextRequest) {
   const protectedPaths = [
     '/api/create-order',    // Payment/order creation
     '/auth/verify',         // Email verification
+    '/api/upload'           // File uploads
   ]
+
+  // For upload requests, add Firebase storage headers
+  if (path.startsWith('/api/upload')) {
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-firebase-storage', process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '')
+    requestHeaders.set('x-firebase-project-id', process.env.FIREBASE_PROJECT_ID || '')
+    
+    const response = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    })
+    
+    addSecurityHeaders(response)
+    return response
+  }
 
   // Check if current path needs rate limiting
   const needsRateLimit = protectedPaths.some(protectedPath => 
@@ -53,12 +70,12 @@ function addSecurityHeaders(response: NextResponse) {
   )
   response.headers.set('Content-Security-Policy', 
     "default-src 'self'; " +
-    "img-src 'self' data: https: blob:; " +
+    "img-src 'self' data: https: blob: *.googleapis.com *.firebasestorage.googleapis.com; " +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: https://*.firebaseapp.com https://*.google.com https://*.razorpay.com; " +
     "style-src 'self' 'unsafe-inline' https:; " +
     "font-src 'self' data: https: chrome-extension:; " +
     "frame-src 'self' https://*.firebaseapp.com https://*.google.com https://*.razorpay.com; " +
-    "connect-src 'self' https: wss: data: https://*.firebaseapp.com https://*.googleapis.com https://*.razorpay.com https://lumberjack.razorpay.com; " +
+    "connect-src 'self' https: wss: data: https://*.firebaseapp.com https://*.googleapis.com https://*.firebasestorage.googleapis.com https://*.razorpay.com https://lumberjack.razorpay.com; " +
     "worker-src 'self' blob:;"
   )
 }

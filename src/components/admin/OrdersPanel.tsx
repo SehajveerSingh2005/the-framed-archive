@@ -61,11 +61,27 @@ export default function OrdersPanel() {
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
-      await updateDoc(doc(db, 'orders', orderId), {
-        status: newStatus
-      })
+      const updateData: any = {
+        status: newStatus,
+      }
+  
+      // Add timestamp for the new status
+      switch (newStatus) {
+        case 'processing':
+          updateData.processedAt = Timestamp.now()
+          break
+        case 'shipped':
+          updateData.shippedAt = Timestamp.now()
+          break
+        case 'delivered':
+          updateData.deliveredAt = Timestamp.now()
+          break
+      }
+  
+      await updateDoc(doc(db, 'orders', orderId), updateData)
+      
       setOrders(orders.map(order => 
-        order.id === orderId ? { ...order, status: newStatus } : order
+        order.id === orderId ? { ...order, ...updateData } : order
       ))
       toast.success('Order status updated')
     } catch (error) {

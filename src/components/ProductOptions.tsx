@@ -13,6 +13,7 @@ const spaceMono = Space_Mono({
 });
 
 
+// Update Product type
 type Product = {
   id: string
   name: string
@@ -20,7 +21,11 @@ type Product = {
   description: string
   details: string[]
   images: {
-    [key: string]: string
+    [key: string]: {
+      large: string
+      medium: string
+      small: string
+    }
   }
   themes: string[]
   printType: string
@@ -95,8 +100,13 @@ export default function ProductOptions({
     }
   }
 
+  // Update handleAddToCart function
   const handleAddToCart = async () => {
     try {
+      // Get the first image from the product images
+      const firstImageKey = Object.keys(product.images)[0]
+      const firstImage = product.images[firstImageKey]
+  
       const newItem = {
         id: Date.now(),
         name: product.name,
@@ -106,20 +116,22 @@ export default function ProductOptions({
         printType: selectedPrintType,
         variant: selectedVariant,
         size: selectedSize,
-        image: Object.values(product.images)[0]
+        image: {
+          large: firstImage.large,
+          medium: firstImage.medium,
+          small: firstImage.small
+        }
       }
-
+  
       if (user) {
-        // Get current cart from database
         const currentCart = await getCart(user.uid)
         const updatedCart = [...currentCart, newItem]
         await updateCart(user.uid, updatedCart)
       } else {
-        // Use secure local storage for non-logged-in users
         const cart = getSecureCart()
         secureCartStorage(cart ? [...cart, newItem] : [newItem])
       }
-
+  
       window.dispatchEvent(new Event('cartUpdated'))
       toast.success(`${product.name} added to cart`)
     } catch (error) {

@@ -6,7 +6,11 @@ export type OrderItem = {
   name: string
   price: number
   quantity: number
-  image: string
+  image: {
+    large: string
+    medium: string
+    small: string
+  }
   size: string
   printType: string
   variant: string
@@ -15,10 +19,14 @@ export type OrderItem = {
 export type Order = {
   id: string
   userId: string
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
   orderDate: Timestamp
+  processedAt?: Timestamp
+  shippedAt?: Timestamp
+  deliveredAt?: Timestamp
+  cancelledAt?: Timestamp
   items: OrderItem[]
   total: number
-  status: 'pending' | 'processing' | 'shipped' | 'delivered'
   paymentId: string
   shippingInfo: {
     firstName: string
@@ -30,7 +38,6 @@ export type Order = {
     state: string
     pinCode: string
   }
-  deliveredAt?: Timestamp
 }
 
 export const createOrder = async (orderData: Order) => {

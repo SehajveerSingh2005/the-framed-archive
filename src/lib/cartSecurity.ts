@@ -9,12 +9,28 @@ export interface CartItem {
   printType: string
   variant: string
   size: string
-  image: string
+  image: {
+    large: string
+    medium: string
+    small: string
+  }
 }
 
 export function validateCartItem(item: CartItem): CartItem {
+  // Handle legacy or invalid image formats
+  const defaultImage = {
+    large: '/images/placeholder.jpg',
+    medium: '/images/placeholder.jpg',
+    small: '/images/placeholder.jpg'
+  }
+
+  const validatedImage = typeof item.image === 'string' 
+    ? { large: item.image, medium: item.image, small: item.image }
+    : (item.image || defaultImage)
+
   return {
     ...item,
+    image: validatedImage,
     quantity: Math.max(1, Math.min(10, item.quantity)),
     price: validatePrice(item.price, item.basePrice),
     name: item.name.slice(0, 100), 

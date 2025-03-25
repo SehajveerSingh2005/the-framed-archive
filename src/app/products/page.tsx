@@ -26,13 +26,18 @@ const archivo = Archivo_Black({
   display: 'swap',
 });
 
+// Update the Product type to match the actual structure
 type Product = {
   id: string
   name: string
   slug: string
   description: string
   images: {
-    [key: string]: string
+    [key: string]: {
+      large: string;
+      medium: string;
+      small: string;
+    }
   }
   themes: string[]
 }
@@ -213,7 +218,11 @@ function ProductsContent() {
                     <div className="relative aspect-[4/5] mb-4 bg-[#111]">
                       <div className="absolute inset-0 bg-gradient-to-r from-black to-zinc-900 animate-pulse" />
                       <Image
-                        src={product.images['2']}
+                        src={
+                          (product.images[2]?.medium || 
+                           product.images[1]?.medium ||
+                           '/images/placeholder.jpg')
+                        }
                         alt={product.name}
                         fill
                         className="object-cover opacity-0 transition-opacity duration-300"
@@ -225,7 +234,11 @@ function ProductsContent() {
                         quality={85}
                       />
                       <Image
-                        src={product.images['1']}
+                        src={
+                          (product.images[1]?.medium || 
+                           product.images[2]?.medium ||
+                           '/images/placeholder.jpg')
+                        }
                         alt={product.name}
                         fill
                         sizes="(max-width: 768px) 100vw, 50vw"

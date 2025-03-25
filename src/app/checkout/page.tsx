@@ -45,12 +45,17 @@ type ShippingInfo = {
 type CartItem = {
   id: number
   name: string
+  basePrice: number
   price: number
   quantity: number
-  image: string
-  size: string
   printType: string
   variant: string
+  size: string
+  image: {
+    large: string
+    medium: string
+    small: string
+  }
 }
 
 export default function CheckoutPage() {
@@ -247,7 +252,14 @@ function CheckoutContent() {
       const orderData: Order = {
         id: `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         userId,
-        items: cartItems,
+        items: cartItems.map(item => ({
+          ...item,
+          image: {
+            large: item.image.large,
+            medium: item.image.medium,
+            small: item.image.small
+          }
+        })),
         total: subtotal + shipping,
         shippingInfo,
         paymentId: response.razorpay_payment_id,
@@ -500,13 +512,21 @@ function CheckoutContent() {
                     transition={{ duration: 0.3, delay: 0.6 + index * 0.1 }}
                     className="flex gap-6"
                   >
-                    <div className="relative w-20 h-20 bg-[#f5f5f5] flex-shrink-0">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                      />
+                    <div className="relative w-30 aspect-[4/5] bg-[#f5f5f5] flex-shrink-0">
+                      {item.image?.small ? (
+                        <Image
+                          src={item.image.small}
+                          alt={item.name || 'Product image'}
+                          fill
+                          className="object-cover"
+                          sizes="80px"
+                          priority={index < 2}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-500">
+                          <span className="text-sm">No Image</span>
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1">
                       <p className="font-bold">{item.name}</p>

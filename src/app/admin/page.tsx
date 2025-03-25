@@ -9,7 +9,6 @@ import OrdersPanel from '@/components/admin/OrdersPanel'
 import StatsPanel from '@/components/admin/StatsPanel'
 import { toast } from 'react-hot-toast'
 import Link from 'next/link'
-import { validateCartItem } from '@/lib/cartSecurity'
 
 const spaceMono = Space_Mono({ 
   weight: ['400', '700'],
@@ -26,16 +25,39 @@ const archivo = Archivo_Black({
 export default function AdminPage() {
   const { user } = useAuth()
   const router = useRouter()
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [activeTab, setActiveTab] = useState<'orders' | 'stats'>('orders')
 
   useEffect(() => {
-    const isAdmin = sessionStorage.getItem('isAdmin')
-    if (!isAdmin) {
-      router.push('/admin/login')
-    }
-  }, [router])
+    const checkAdmin = async () => {
+      if (!user) {
+        router.push('/admin/login')
+        return
+      }
 
-  if (!user) return null
+      const adminCheck = sessionStorage.getItem('isAdmin')
+      if (!adminCheck) {
+        router.push('/admin/login')
+        return
+      }
+
+      setIsAdmin(true)
+    }
+
+    checkAdmin()
+  }, [user, router])
+
+  // Show loading state while checking admin status
+  if (isAdmin === null) {
+    return (
+      <div className="min-h-screen bg-[#f1f1f1] flex items-center justify-center">
+        <p className={`${spaceMono.className} text-xl`}>Loading...</p>
+      </div>
+    )
+  }
+
+  // Show admin panel only if user is admin
+  if (!isAdmin) return null
 
   return (
     <main className="min-h-screen bg-[#f1f1f1]">

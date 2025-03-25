@@ -16,6 +16,7 @@ import LoadingScreen from '@/components/LoadingScreen'
 import { verifyPinCode } from '@/lib/location'
 import { motion, AnimatePresence } from 'framer-motion'
 import OrderModal from '@/components/OrderModal'
+import Image from 'next/image'
 
 const spaceMono = Space_Mono({ 
   weight: ['400', '700'],
@@ -34,7 +35,11 @@ type OrderItem = {
   name: string
   price: number
   quantity: number
-  image: string
+  image: {
+    large: string
+    medium: string
+    small: string
+  }
   size: string
   printType: string
   variant: string
@@ -387,14 +392,23 @@ export default function ProfilePage() {
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {order.items.map((item, index) => (
-                              <div key={index} className="flex gap-4 bg-[#111] p-4">
-                                <div className="relative w-20 h-20 bg-black flex-shrink-0">
-                                  <img 
-                                    src={item.image} 
-                                    alt={item.name}
-                                    className="w-full h-full object-cover"
-                                  />
+                            {order.items.map((item, itemIndex) => (
+                              <div key={`${order.id}-${itemIndex}`} className="flex gap-4 bg-[#111] p-4">
+                                <div className="relative w-24 aspect-[4/5] bg-[#f5f5f5] flex-shrink-0">
+                                  {item.image?.medium ? (
+                                    <Image
+                                      src={item.image.medium}
+                                      alt={item.name}
+                                      fill
+                                      className="object-cover"
+                                      sizes="96px"
+                                      priority={itemIndex < 2}
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-gray-500">
+                                      <span className="text-sm">No Image</span>
+                                    </div>
+                                  )}
                                 </div>
                                 <div>
                                   <p className="font-medium mb-1">{item.name}</p>

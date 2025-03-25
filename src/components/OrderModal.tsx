@@ -5,6 +5,7 @@ import { type Order } from '@/lib/firebase/orders'
 import OrderActions from '@/components/OrderActions'
 import { Space_Mono, Archivo_Black } from 'next/font/google'
 import { Timestamp } from 'firebase/firestore'
+import Image from 'next/image'
 
 const spaceMono = Space_Mono({ 
   weight: ['400', '700'],
@@ -146,13 +147,22 @@ export default function OrderModal({ order, isOpen, onClose }: OrderModalProps) 
                 <h3 className={`${archivo.className} text-xl`}>ORDER ITEMS</h3>
                 <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                   {order.items.map((item, index) => (
-                    <div key={index} className="flex gap-4 bg-black/30 p-4">
-                      <div className="relative w-20 h-20 bg-black flex-shrink-0">
-                        <img 
-                          src={item.image} 
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
+                    <div key={`${order.id}-${index}`} className="flex gap-4 bg-black/30 p-4">
+                      <div className="relative w-20 aspect-[4/5] bg-[#f5f5f5] flex-shrink-0">
+                        {item.image?.small && item.image.small !== '' ? (
+                          <Image
+                            src={item.image.small}
+                            alt={item.name || 'Product image'}
+                            fill
+                            className="object-cover"
+                            sizes="80px"
+                            priority={index < 2}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-500">
+                            <Package className="w-6 h-6" />
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-base mb-1 truncate">{item.name}</p>
