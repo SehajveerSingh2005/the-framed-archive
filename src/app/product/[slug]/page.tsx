@@ -8,8 +8,9 @@ import Script from 'next/script'
 // Add segment config
 export const dynamic = 'force-dynamic'
 
+// Update Props type to match Next.js expectations
 type Props = {
-  params: { slug: string }
+  params: Promise<{ slug: string }> | { slug: string }
   searchParams?: { [key: string]: string | string[] | undefined }
 }
 
@@ -38,12 +39,11 @@ async function getProduct(slug: string) {
 
 // Update generateMetadata function
 export async function generateMetadata(
-  props: Props,
+  { params }: { params: Props['params'] },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  // Await the params before using
-  const params = await Promise.resolve(props.params)
-  const querySnapshot = await getProduct(params.slug)
+  const resolvedParams = await params
+  const querySnapshot = await getProduct(resolvedParams.slug)
   
   if (querySnapshot.empty) {
     return {
@@ -52,7 +52,7 @@ export async function generateMetadata(
   }
 
   const product = querySnapshot.docs[0].data() as ProductData
-  const { slug } = params
+  const { slug } = resolvedParams
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -122,10 +122,9 @@ export async function generateMetadata(
 }
 
 // Update page component
-export default async function ProductPage(props: Props) {
-  // Await the params before using
-  const params = await Promise.resolve(props.params)
-  const querySnapshot = await getProduct(params.slug)
+export default async function ProductPage({ params }: { params: Props['params'] }) {
+  const resolvedParams = await params
+  const querySnapshot = await getProduct(resolvedParams.slug)
   
   if (querySnapshot.empty) {
     return (
