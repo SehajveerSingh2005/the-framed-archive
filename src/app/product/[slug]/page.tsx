@@ -40,12 +40,11 @@ async function getProduct(slug: string) {
 
 // Update generateMetadata function
 export async function generateMetadata(
-  { params }: { params: Props['params'] },
+  props: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  // Ensure params is awaited
-  const resolvedParams = 'then' in params ? await params : params
-  const slug = String(resolvedParams.slug)
+  const params = await Promise.resolve(props.params)
+  const slug = String(params.slug)
   const querySnapshot = await getProduct(slug)
   
   if (querySnapshot.empty) {
@@ -124,10 +123,9 @@ export async function generateMetadata(
 }
 
 // Update page component
-export default async function ProductPage({ params }: { params: Props['params'] }) {
-  // Ensure params is awaited
-  const resolvedParams = 'then' in params ? await params : params
-  const slug = String(resolvedParams.slug)
+export default async function ProductPage(props: Props) {
+  const params = await Promise.resolve(props.params)
+  const slug = String(params.slug)
   const querySnapshot = await getProduct(slug)
   
   if (querySnapshot.empty) {
