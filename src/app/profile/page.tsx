@@ -52,6 +52,7 @@ export default function ProfilePage() {
   const router = useRouter()
   const user = auth.currentUser
   const [orders, setOrders] = useState<Order[]>([])
+  const [authLoading, setAuthLoading] = useState(true)
   const [loading, setLoading] = useState(true)
   const [isEditingAddress, setIsEditingAddress] = useState(false)
   const [pinCodeError, setPinCodeError] = useState('')
@@ -63,6 +64,7 @@ export default function ProfilePage() {
     zipCode: '',
     country: ''
   })
+
 
   // Fetch orders and address
   useEffect(() => {
@@ -90,10 +92,15 @@ export default function ProfilePage() {
   }, [user])
 
   useEffect(() => {
-    if (!user) {
-      router.push('/')
-    }
-  }, [user, router])
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (!user) {
+        router.push('/')
+      }
+      setAuthLoading(false)
+    })
+  
+    return () => unsubscribe()
+  }, [router])
 
   const handleAddressChange = async (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -140,8 +147,10 @@ export default function ProfilePage() {
     }
   }
 
-  // Remove this unused effect
-
+  if (authLoading) {
+    return <LoadingScreen />
+  }
+  
   if (!user) {
     return null
   }
@@ -184,16 +193,16 @@ export default function ProfilePage() {
                   <div>
                     <label className="text-xs text-white/60">NAME</label>
                     <div className="flex items-center gap-4 mt-2">
-                      <User className="w-5 h-5 text-white/60" />
-                      <span className="font-medium">{user.displayName || 'Not set'}</span>
+                      <User className="w-5 h-5 text-white/60 flex-shrink-0" />
+                      <span className="font-medium truncate">{user.displayName || 'Not set'}</span>
                     </div>
                   </div>
 
                   <div>
                     <label className="text-xs text-white/60">EMAIL</label>
                     <div className="flex items-center gap-4 mt-2">
-                      <Mail className="w-5 h-5 text-white/60" />
-                      <span className="font-medium">{user.email}</span>
+                      <Mail className="w-5 h-5 text-white/60 flex-shrink-0" />
+                      <span className="font-medium truncate">{user.email}</span>
                     </div>
                   </div>
 
@@ -353,7 +362,7 @@ export default function ProfilePage() {
                       </motion.div>
                     </motion.div>
                   ) : (
-                    <motion.div className="space-y-6">
+                    <motion.div className="space-y-4">
                       {orders.map((order, index) => (
                         <motion.div
                           key={order.id}
@@ -363,16 +372,16 @@ export default function ProfilePage() {
                             duration: 0.5,
                             delay: index * 0.1 
                           }}
-                          className="bg-black p-6 space-y-6 cursor-pointer"
+                          className="bg-black p-4 sm:p-6 cursor-pointer"
                           onClick={() => setSelectedOrder(order)}
                         >
-                          <div className="flex flex-wrap gap-6 justify-between items-start">
+                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 sm:justify-between mb-3 sm:mb-6">
                             <div>
                               <p className="text-sm text-white/60">Order #{order.id.slice(-6)}</p>
-                              <p className="text-xl font-medium">₹{formatPrice(order.total)}</p>
+                              <p className="text-lg sm:text-xl font-medium">₹{formatPrice(order.total)}</p>
                             </div>
-                            <div className="space-y-2 text-right">
-                              <span className={`inline-block px-3 py-1 text-xs ${
+                            <div className="flex sm:flex-col gap-3 items-center sm:items-end">
+                              <span className={`px-3 py-1 text-xs ${
                                 order.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' :
                                 order.status === 'processing' ? 'bg-blue-500/20 text-blue-500' :
                                 order.status === 'shipped' ? 'bg-purple-500/20 text-purple-500' :
@@ -380,8 +389,8 @@ export default function ProfilePage() {
                               }`}>
                                 {order.status.toUpperCase()}
                               </span>
-                              <p className="text-sm text-white/60">
-                                <Clock className="w-4 h-4 inline mr-2" />
+                              <p className="text-xs sm:text-sm text-white/60">
+                                <Clock className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
                                 {order.orderDate.toDate().toLocaleDateString('en-US', {
                                   year: 'numeric',
                                   month: 'long',
@@ -391,36 +400,39 @@ export default function ProfilePage() {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                             {order.items.map((item, itemIndex) => (
-                              <div key={`${order.id}-${itemIndex}`} className="flex gap-4 bg-[#111] p-4">
-                                <div className="relative w-24 aspect-[4/5] bg-[#f5f5f5] flex-shrink-0">
+                              <div key={`${order.id}-${itemIndex}`} className="flex gap-3 sm:gap-4 bg-[#111] p-3 sm:p-4">
+                                <div className="relative w-16 sm:w-24 aspect-[4/5] bg-[#f5f5f5] flex-shrink-0">
                                   {item.image?.medium ? (
                                     <Image
                                       src={item.image.medium}
                                       alt={item.name}
                                       fill
                                       className="object-cover"
-                                      sizes="96px"
+                                      sizes="(max-width: 640px) 64px, 96px"
                                       priority={itemIndex < 2}
                                     />
                                   ) : (
                                     <div className="w-full h-full flex items-center justify-center text-gray-500">
-                                      <span className="text-sm">No Image</span>
+                                      <span className="text-xs sm:text-sm">No Image</span>
                                     </div>
                                   )}
                                 </div>
-                                <div>
-                                  <p className="font-medium mb-1">{item.name}</p>
-                                  <p className="text-sm text-white/60">
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm sm:text-base truncate">{item.name}</p>
+                                  <p className="text-xs sm:text-sm text-white/60">
                                     {item.printType} - {item.variant}
                                   </p>
-                                  <p className="text-sm text-white/60">
+                                  <p className="text-xs sm:text-sm text-white/60">
                                     Size: {item.size}
                                   </p>
-                                  <p className="text-sm text-white/60">
-                                    Qty: {item.quantity}
-                                  </p>
+                                  <div className="flex justify-between items-center mt-1 sm:mt-2">
+                                    <p className="text-xs sm:text-sm text-white/60">
+                                      Qty: {item.quantity}
+                                    </p>
+                                    <p className="text-sm sm:text-base">₹{formatPrice(item.price * item.quantity)}</p>
+                                  </div>
                                 </div>
                               </div>
                             ))}

@@ -31,3 +31,30 @@ export const printOptionDetails = {
     priceMultiplier: 2
   }
 }
+
+export type Product = {
+  id: string
+  name: string
+  description: string
+  details: string[]
+  images: {
+    [key: string]: {
+      large: string
+      medium: string
+      small: string
+    }
+  }
+  themes: string[]
+  reviews?: Review[]
+  wishlistedBy?: string[]
+  slug: string
+}
+
+export type Review = {
+  id: string
+  userId: string
+  userName: string
+  rating: number
+  comment: string
+  createdAt: Date
+}

@@ -6,7 +6,41 @@ import { Analytics } from '@vercel/analytics/react'
 
 export const metadata = {
   title: "The Framed Archive",
-  description: "Art that speaks.",
+  description: "Art that speaks. Discover and shop unique art prints, posters, and framed artwork from The Framed Archive collection.",
+  keywords: "art prints, posters, framed artwork, wall art, home decor, art collection",
+  openGraph: {
+    title: 'The Framed Archive',
+    description: 'Art that speaks. Discover and shop unique art prints, posters, and framed artwork.',
+    url: 'https://theframedarchive.com',
+    siteName: 'The Framed Archive',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'The Framed Archive',
+    description: 'Art that speaks. Discover and shop unique art prints, posters, and framed artwork.',
+    images: ['/og-image.jpg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  metadataBase: new URL('https://theframedarchive.com'),
 }
 
 export default function RootLayout({
@@ -19,6 +53,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <meta name="apple-mobile-web-app-title" content="The Framed Archive" />
       </head>
       <body>
         <ClientLayoutWrapper>
