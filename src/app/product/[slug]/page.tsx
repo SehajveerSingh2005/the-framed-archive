@@ -7,12 +7,6 @@ import Script from 'next/script'
 
 export const dynamic = 'force-dynamic'
 
-// Update the Props type to match Next.js PageProps constraint
-type Props = {
-  params: Promise<{ slug: string }> 
-  searchParams?: { [key: string]: string | string[] | undefined }
-}
-
 type ProductData = {
   name: string
   description: string
@@ -35,13 +29,11 @@ async function getProduct(slug: string) {
   return querySnapshot
 }
 
-export async function generateMetadata(
-  props: Props,
-  parent: ResolvingMetadata
-): Promise<Metadata> {
-  // Await params first
+// In the generateMetadata function
+export async function generateMetadata(props: any, parent: ResolvingMetadata): Promise<Metadata> {
   const params = await Promise.resolve(props.params)
-  const querySnapshot = await getProduct(params.slug)
+  const slug = params.slug
+  const querySnapshot = await getProduct(slug)
   
   if (querySnapshot.empty) {
     return {
@@ -50,30 +42,6 @@ export async function generateMetadata(
   }
 
   const product = querySnapshot.docs[0].data() as ProductData
-
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: product.name,
-    description: product.description,
-    image: Object.values(product.images).map(img => img.large),
-    offers: {
-      '@type': 'Offer',
-      availability: 'https://schema.org/InStock',
-      price: '0',
-      priceCurrency: 'INR',
-      url: `https://theframedarchive.com/product/${params.slug}`,
-    },
-    brand: {
-      '@type': 'Brand',
-      name: 'The Framed Archive'
-    },
-    additionalProperty: product.details?.map(detail => ({
-      '@type': 'PropertyValue',
-      name: 'Product Detail',
-      value: detail
-    }))
-  }
 
   return {
     metadataBase: new URL('https://theframedarchive.com'),
@@ -98,7 +66,7 @@ export async function generateMetadata(
       images: Object.values(product.images).map(img => img.large),
     },
     alternates: {
-      canonical: `https://theframedarchive.com/product/${params.slug}`,
+      canonical: `https://theframedarchive.com/product/${slug}`,
     },
     other: {
       'application-name': 'The Framed Archive',
@@ -118,10 +86,11 @@ export async function generateMetadata(
   }
 }
 
-export default async function ProductPage(props: Props) {
-  // Await params first
+// In the ProductPage component
+export default async function ProductPage(props: any) {
   const params = await Promise.resolve(props.params)
-  const querySnapshot = await getProduct(params.slug)
+  const slug = params.slug
+  const querySnapshot = await getProduct(slug)
   
   if (querySnapshot.empty) {
     return (
