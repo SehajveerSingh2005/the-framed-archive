@@ -8,6 +8,20 @@ export const metadata = {
   title: "The Framed Archive",
   description: "Art that speaks. Discover and shop unique art prints, posters, and framed artwork from The Framed Archive collection.",
   keywords: "art prints, posters, framed artwork, wall art, home decor, art collection",
+  metadataBase: new URL('https://theframedarchive.com'),
+  // Add these new fields
+  alternates: {
+    canonical: '/',
+    languages: {
+      'en-US': '/en-us',
+    },
+  },
+  verification: {
+    google: 'your-google-verification-code',
+  },
+  authors: [{ name: 'The Framed Archive' }],
+  creator: 'The Framed Archive',
+  publisher: 'The Framed Archive',
   openGraph: {
     title: 'The Framed Archive',
     description: 'Art that speaks. Discover and shop unique art prints, posters, and framed artwork.',
@@ -40,7 +54,6 @@ export const metadata = {
       'max-snippet': -1,
     },
   },
-  metadataBase: new URL('https://theframedarchive.com'),
 }
 
 export default function RootLayout({

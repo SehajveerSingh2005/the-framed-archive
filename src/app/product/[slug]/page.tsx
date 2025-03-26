@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic'
 
 type Props = {
   params: { slug: string }
+  searchParams?: { [key: string]: string | string[] | undefined }
 }
 
 type ProductData = {
@@ -27,14 +28,16 @@ type ProductData = {
   slug: string
 }
 
-async function getProduct(params: Props['params']) {
-  const { slug } = await params
+// Update the getProduct function
+async function getProduct(params: { slug: string }) {
+  const { slug } = params
   const productsRef = collection(db, 'products')
   const q = query(productsRef, where('slug', '==', slug))
   const querySnapshot = await getDocs(q)
   return querySnapshot
 }
 
+// Update the generateMetadata function signature
 export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata
@@ -117,7 +120,8 @@ export async function generateMetadata(
   }
 }
 
-export default async function ProductPage({ params }: Props) {
+// Update the page component
+export default async function ProductPage({ params, searchParams }: Props) {
   const querySnapshot = await getProduct(params)
   
   if (querySnapshot.empty) {
