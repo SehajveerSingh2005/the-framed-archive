@@ -36,14 +36,14 @@ async function getProduct(slug: string) {
   return querySnapshot
 }
 
-// Update generateMetadata
+// Update generateMetadata function
 export async function generateMetadata(
-  { params }: Props,
+  props: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  // Await params before using
-  const resolvedParams = await Promise.resolve(params)
-  const querySnapshot = await getProduct(resolvedParams.slug)
+  // Await the params before using
+  const params = await Promise.resolve(props.params)
+  const querySnapshot = await getProduct(params.slug)
   
   if (querySnapshot.empty) {
     return {
@@ -52,9 +52,7 @@ export async function generateMetadata(
   }
 
   const product = querySnapshot.docs[0].data() as ProductData
-
-  // Remove the await from params destructuring
-  const { slug } = resolvedParams
+  const { slug } = params
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -123,10 +121,11 @@ export async function generateMetadata(
   }
 }
 
-// Update the page component to also await params
-export default async function ProductPage({ params }: Props) {
-  const resolvedParams = await Promise.resolve(params)
-  const querySnapshot = await getProduct(resolvedParams.slug)
+// Update page component
+export default async function ProductPage(props: Props) {
+  // Await the params before using
+  const params = await Promise.resolve(props.params)
+  const querySnapshot = await getProduct(params.slug)
   
   if (querySnapshot.empty) {
     return (
