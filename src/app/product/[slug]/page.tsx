@@ -5,6 +5,7 @@ import ProductPageClient from '@/components/ProductPageClient'
 import { Product } from '@/types/product'
 import Script from 'next/script'
 
+
 // Add segment config
 export const dynamic = 'force-dynamic'
 
@@ -42,8 +43,10 @@ export async function generateMetadata(
   { params }: { params: Props['params'] },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const resolvedParams = await params
-  const querySnapshot = await getProduct(resolvedParams.slug)
+  // Ensure params is awaited
+  const resolvedParams = 'then' in params ? await params : params
+  const slug = String(resolvedParams.slug)
+  const querySnapshot = await getProduct(slug)
   
   if (querySnapshot.empty) {
     return {
@@ -52,7 +55,6 @@ export async function generateMetadata(
   }
 
   const product = querySnapshot.docs[0].data() as ProductData
-  const { slug } = resolvedParams
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -123,8 +125,10 @@ export async function generateMetadata(
 
 // Update page component
 export default async function ProductPage({ params }: { params: Props['params'] }) {
-  const resolvedParams = await params
-  const querySnapshot = await getProduct(resolvedParams.slug)
+  // Ensure params is awaited
+  const resolvedParams = 'then' in params ? await params : params
+  const slug = String(resolvedParams.slug)
+  const querySnapshot = await getProduct(slug)
   
   if (querySnapshot.empty) {
     return (
