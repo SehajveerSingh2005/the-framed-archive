@@ -5,13 +5,10 @@ import ProductPageClient from '@/components/ProductPageClient'
 import { Product } from '@/types/product'
 import Script from 'next/script'
 
-
-// Add segment config
 export const dynamic = 'force-dynamic'
 
-// Update Props type to match Next.js expectations
 type Props = {
-  params: Promise<{ slug: string }> | { slug: string }
+  params: { slug: string }
   searchParams?: { [key: string]: string | string[] | undefined }
 }
 
@@ -30,23 +27,6 @@ type ProductData = {
   slug: string
 }
 
-// Helper function to safely get slug
-async function getSlugParam(params: any) {
-  try {
-    // First, await the params if it's a Promise
-    const resolvedParams = await params
-    // Then, ensure we have a slug
-    if (!resolvedParams?.slug) {
-      throw new Error('No slug found in params')
-    }
-    return String(resolvedParams.slug)
-  } catch (error) {
-    console.error('Error resolving slug:', error)
-    return ''
-  }
-}
-
-// Update getProduct to handle params directly
 async function getProduct(slug: string) {
   const productsRef = collection(db, 'products')
   const q = query(productsRef, where('slug', '==', slug))
@@ -54,13 +34,12 @@ async function getProduct(slug: string) {
   return querySnapshot
 }
 
-// Update generateMetadata function
 export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const slug = await getSlugParam(params)
-  const querySnapshot = await getProduct(slug)
+  const resolvedParams = await Promise.resolve(params)
+  const querySnapshot = await getProduct(resolvedParams.slug)
   
   if (querySnapshot.empty) {
     return {
@@ -79,9 +58,9 @@ export async function generateMetadata(
     offers: {
       '@type': 'Offer',
       availability: 'https://schema.org/InStock',
-      price: '0', // Add your actual price here
+      price: '0',
       priceCurrency: 'INR',
-      url: `https://theframedarchive.com/product/${slug}`,
+      url: `https://theframedarchive.com/product/${resolvedParams.slug}`,
     },
     brand: {
       '@type': 'Brand',
@@ -117,7 +96,7 @@ export async function generateMetadata(
       images: Object.values(product.images).map(img => img.large),
     },
     alternates: {
-      canonical: `https://theframedarchive.com/product/${slug}`,
+      canonical: `https://theframedarchive.com/product/${resolvedParams.slug}`,
     },
     other: {
       'application-name': 'The Framed Archive',
@@ -137,10 +116,9 @@ export async function generateMetadata(
   }
 }
 
-// Update page component
 export default async function ProductPage({ params }: Props) {
-  const slug = await getSlugParam(params)
-  const querySnapshot = await getProduct(slug)
+  const resolvedParams = await Promise.resolve(params)
+  const querySnapshot = await getProduct(resolvedParams.slug)
   
   if (querySnapshot.empty) {
     return (
@@ -179,7 +157,7 @@ export default async function ProductPage({ params }: Props) {
     offers: {
       '@type': 'Offer',
       availability: 'https://schema.org/InStock',
-      price: '0', // Add your actual price here
+      price: '0',
       priceCurrency: 'INR',
       url: `https://theframedarchive.com/product/${product.slug}`,
     },
