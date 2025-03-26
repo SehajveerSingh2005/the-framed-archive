@@ -7,8 +7,9 @@ import Script from 'next/script'
 
 export const dynamic = 'force-dynamic'
 
+// Updated Props type to handle both Promise and direct access
 type Props = {
-  params: { slug: string }
+  params: Promise<{ slug: string }> | { slug: string }
   searchParams?: { [key: string]: string | string[] | undefined }
 }
 
@@ -35,11 +36,12 @@ async function getProduct(slug: string) {
 }
 
 export async function generateMetadata(
-  { params }: Props,
+  props: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const resolvedParams = await Promise.resolve(params)
-  const querySnapshot = await getProduct(resolvedParams.slug)
+  // Await params first
+  const params = await Promise.resolve(props.params)
+  const querySnapshot = await getProduct(params.slug)
   
   if (querySnapshot.empty) {
     return {
@@ -60,7 +62,7 @@ export async function generateMetadata(
       availability: 'https://schema.org/InStock',
       price: '0',
       priceCurrency: 'INR',
-      url: `https://theframedarchive.com/product/${resolvedParams.slug}`,
+      url: `https://theframedarchive.com/product/${params.slug}`,
     },
     brand: {
       '@type': 'Brand',
@@ -96,7 +98,7 @@ export async function generateMetadata(
       images: Object.values(product.images).map(img => img.large),
     },
     alternates: {
-      canonical: `https://theframedarchive.com/product/${resolvedParams.slug}`,
+      canonical: `https://theframedarchive.com/product/${params.slug}`,
     },
     other: {
       'application-name': 'The Framed Archive',
@@ -116,9 +118,10 @@ export async function generateMetadata(
   }
 }
 
-export default async function ProductPage({ params }: Props) {
-  const resolvedParams = await Promise.resolve(params)
-  const querySnapshot = await getProduct(resolvedParams.slug)
+export default async function ProductPage(props: Props) {
+  // Await params first
+  const params = await Promise.resolve(props.params)
+  const querySnapshot = await getProduct(params.slug)
   
   if (querySnapshot.empty) {
     return (
