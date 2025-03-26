@@ -7,9 +7,9 @@ import Script from 'next/script'
 
 export const dynamic = 'force-dynamic'
 
-// Updated Props type to handle both Promise and direct access
+// Update the Props type to match Next.js PageProps constraint
 type Props = {
-  params: Promise<{ slug: string }> | { slug: string }
+  params: Promise<{ slug: string }> 
   searchParams?: { [key: string]: string | string[] | undefined }
 }
 
