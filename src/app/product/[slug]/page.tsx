@@ -30,6 +30,22 @@ type ProductData = {
   slug: string
 }
 
+// Helper function to safely get slug
+async function getSlugParam(params: any) {
+  try {
+    // First, await the params if it's a Promise
+    const resolvedParams = await params
+    // Then, ensure we have a slug
+    if (!resolvedParams?.slug) {
+      throw new Error('No slug found in params')
+    }
+    return String(resolvedParams.slug)
+  } catch (error) {
+    console.error('Error resolving slug:', error)
+    return ''
+  }
+}
+
 // Update getProduct to handle params directly
 async function getProduct(slug: string) {
   const productsRef = collection(db, 'products')
@@ -40,11 +56,10 @@ async function getProduct(slug: string) {
 
 // Update generateMetadata function
 export async function generateMetadata(
-  props: Props,
+  { params }: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const params = await Promise.resolve(props.params)
-  const slug = String(params.slug)
+  const slug = await getSlugParam(params)
   const querySnapshot = await getProduct(slug)
   
   if (querySnapshot.empty) {
@@ -123,9 +138,8 @@ export async function generateMetadata(
 }
 
 // Update page component
-export default async function ProductPage(props: Props) {
-  const params = await Promise.resolve(props.params)
-  const slug = String(params.slug)
+export default async function ProductPage({ params }: Props) {
+  const slug = await getSlugParam(params)
   const querySnapshot = await getProduct(slug)
   
   if (querySnapshot.empty) {
