@@ -28,21 +28,22 @@ type ProductData = {
   slug: string
 }
 
-// Update the getProduct function
-async function getProduct(params: { slug: string }) {
-  const { slug } = params
+// Update getProduct to handle params directly
+async function getProduct(slug: string) {
   const productsRef = collection(db, 'products')
   const q = query(productsRef, where('slug', '==', slug))
   const querySnapshot = await getDocs(q)
   return querySnapshot
 }
 
-// Update the generateMetadata function signature
+// Update generateMetadata
 export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const querySnapshot = await getProduct(params)
+  // Await params before using
+  const resolvedParams = await Promise.resolve(params)
+  const querySnapshot = await getProduct(resolvedParams.slug)
   
   if (querySnapshot.empty) {
     return {
@@ -51,7 +52,9 @@ export async function generateMetadata(
   }
 
   const product = querySnapshot.docs[0].data() as ProductData
-  const { slug } = await params
+
+  // Remove the await from params destructuring
+  const { slug } = resolvedParams
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -120,9 +123,10 @@ export async function generateMetadata(
   }
 }
 
-// Update the page component
-export default async function ProductPage({ params, searchParams }: Props) {
-  const querySnapshot = await getProduct(params)
+// Update the page component to also await params
+export default async function ProductPage({ params }: Props) {
+  const resolvedParams = await Promise.resolve(params)
+  const querySnapshot = await getProduct(resolvedParams.slug)
   
   if (querySnapshot.empty) {
     return (
