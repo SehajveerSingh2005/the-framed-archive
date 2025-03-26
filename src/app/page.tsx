@@ -173,8 +173,66 @@ export default function Home() {
         transition={{ duration: 0.8 }}
         className="py-32 px-8 bg-black text-white"
       >
-        {/* Rest of the featured products section remains unchanged */}
-        {/* ... */}
+        <div className="max-w-screen-xl mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="flex justify-between items-center mb-16"
+          >
+            <h2 className={`${archivo.className} text-3xl font-bold`}>FEATURED WORKS</h2>
+            <motion.div whileHover={{ scale: 1.05 }}>
+              <Link href="/products" className={`${spaceMono.className} underline`}>
+                View All
+              </Link>
+            </motion.div>
+          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {featuredProducts.map((product, index) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ 
+                  duration: 0.5,
+                  delay: index * 0.1 
+                }}
+              >
+                <Link 
+                  href={`/product/${product.slug}`}
+                  className="group block"
+                >
+                  <div className="relative aspect-[3/4] mb-4 bg-gray-900">
+                    {product.images && (
+                      <Image
+                        src={
+                          (product.images[1]?.medium || 
+                           product.images[2]?.medium || 
+                           '/images/placeholder.jpg')
+                        }
+                        alt={product.name}
+                        fill
+                        className="object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                      />
+                    )}
+                  </div>
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.2 + index * 0.1 }}
+                    className="flex justify-between items-start"
+                  >
+                    <h3 className={`${archivo.className} text-lg font-medium`}>{product.name}</h3>
+                  </motion.div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </motion.section>
 
       <Footer theme='light' />
