@@ -70,9 +70,8 @@ export default function Footer({ theme = 'light', background = 'light', classNam
           <div className="space-y-6">
             <h4 className={`${textColor} text-sm`}>CONNECT</h4>
             <ul className="space-y-4 text-sm">
-              <li><a href="https://instagram.com" target="_blank" className={`${textColorDim} hover:${textColor} transition-colors`}>Instagram</a></li>
-              <li><a href="https://twitter.com" target="_blank" className={`${textColorDim} hover:${textColor} transition-colors`}>Twitter</a></li>
-              <li><a href="mailto:hello@framedarchive.com" className={`${textColorDim} hover:${textColor} transition-colors`}>Email</a></li>
+              <li><a href="https://www.instagram.com/theframedarchive/" target="_blank" className={`${textColorDim} hover:${textColor} transition-colors`}>Instagram</a></li>
+              <li><a href="theframedarchive@gmail.com" className={`${textColorDim} hover:${textColor} transition-colors`}>Email</a></li>
             </ul>
           </div>
         </div>

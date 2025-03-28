@@ -4,6 +4,8 @@ import { collection, query, where, getDocs } from 'firebase/firestore'
 import ProductPageClient from '@/components/ProductPageClient'
 import { Product } from '@/types/product'
 import Script from 'next/script'
+import LoadingScreen from '@/components/LoadingScreen'
+import { Suspense } from 'react'
 
 export const dynamic = 'force-dynamic'
 
@@ -145,13 +147,13 @@ export default async function ProductPage(props: any) {
   }
 
   return (
-    <>
+    <Suspense fallback={<LoadingScreen />}>
       <Script
         id="product-jsonld"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <ProductPageClient initialProduct={product} />
-    </>
-  )
+    </Suspense>
+  );
 }
